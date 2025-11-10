@@ -5,7 +5,7 @@
 [![Total Downloads](https://img.shields.io/packagist/dt/thejano/laravel-multi-lang.svg?style=flat-square)](https://packagist.org/packages/thejano/laravel-multi-lang)
 [![License](https://img.shields.io/github/license/thejano/laravel-multi-lang.svg?style=flat-square)](LICENSE)
 
-Polymorphic translations for Laravel models with caching, eager-loading helpers, Blade directives, and convenient facades. Built with first-class support for Kurdish (ckb) and Arabic (ar).
+Polymorphic translations for Laravel models with caching, eager-loading helpers, Blade directives, and convenient facades. 
 
 ---
 
