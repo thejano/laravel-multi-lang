@@ -1,0 +1,77 @@
+{
+  "name": "thejano/laravel-multi-lang",
+  "description": "Polymorphic translation support for Laravel models with caching, helpers, and facade.",
+  "type": "library",
+  "license": "MIT",
+  "keywords": [
+    "laravel",
+    "multi-lang",
+    "translation",
+    "localization",
+    "i18n",
+    "ckb",
+    "arabic"
+  ],
+  "authors": [
+    {
+      "name": "TheJano",
+      "role": "Developer",
+      "homepage": "https://janocode.com"
+    },
+    {
+      "name": "Dr Pshtiwan",
+      "homepage": "https://github.com/drpshtiwan",
+      "role": "Maintainer"
+    }
+  ],
+  "require": {
+    "php": ">=8.1",
+    "illuminate/support": "^10.0|^11.0|^12.0",
+    "illuminate/database": "^10.0|^11.0|^12.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "TheJano\\MultiLang\\": "src/"
+    },
+    "files": [
+      "src/helpers.php"
+    ]
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "TheJano\\MultiLang\\Tests\\": "tests/",
+      "TheJano\\MultiLang\\Database\\Factories\\": "database/factories/"
+    }
+  },
+  "require-dev": {
+    "orchestra/testbench": "^8.0|^9.0|^10.0",
+    "pestphp/pest": "^2.34",
+    "pestphp/pest-plugin-laravel": "^2.4",
+    "laravel/pint": "^1.20.0|^1.25.0",
+    "guzzlehttp/guzzle": "^7.5"
+  },
+  "scripts": {
+    "test": "vendor/bin/pest",
+    "pest": "vendor/bin/pest",
+    "pint": "vendor/bin/pint",
+    "lint": "vendor/bin/pint"
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "TheJano\\MultiLang\\MultiLangServiceProvider"
+      ],
+      "aliases": {
+        "MultiLang": "TheJano\\MultiLang\\Facades\\MultiLang"
+      }
+    }
+  },
+  "minimum-stability": "stable",
+  "prefer-stable": true,
+  "homepage": "https://multi-lang.thejano.com",
+  "config": {
+    "allow-plugins": {
+      "pestphp/pest-plugin": true
+    }
+  }
+}
