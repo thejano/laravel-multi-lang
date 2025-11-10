@@ -33,6 +33,21 @@ if (! function_exists('trans_model_or_original')) {
     }
 }
 
+if (! function_exists('trans_model_choice')) {
+    /**
+     * Get pluralized translation for a model field.
+     */
+    function trans_model_choice(
+        Model $model,
+        string $field,
+        int|float $count,
+        array $replace = [],
+        ?string $locale = null
+    ): ?string {
+        return MultiLang::getModelTranslationPlural($model, $field, $count, $replace, $locale);
+    }
+}
+
 if (! function_exists('get_available_locales')) {
     /**
      * Get all available locales.

@@ -58,3 +58,15 @@ test('helper function has_translations works', function () {
     expect(has_translations('ckb'))->toBeTrue();
     expect(has_translations('de'))->toBeFalse();
 });
+
+test('helper function trans_model_choice works', function () {
+    $post = TestPost::create([
+        'title' => 'Original Title',
+        'content' => 'Original Content',
+    ]);
+
+    $post->setTranslation('title', '{0}No apples|{1}One apple|[2,*]:count apples', 'en');
+
+    expect(trans_model_choice($post, 'title', 0, [], 'en'))->toBe('No apples');
+    expect(trans_model_choice($post, 'title', 4, ['count' => 4], 'en'))->toBe('4 apples');
+});

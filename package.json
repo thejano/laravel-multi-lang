@@ -1,0 +1,29 @@
+{
+  "name": "laravel-multi-lang-docs",
+  "version": "1.0.0",
+  "description": "Polymorphic translation support for Laravel models with caching, helpers, and facade.",
+  "homepage": "https://multi-lang.thejano.com",
+  "scripts": {
+    "docs:dev": "vuepress dev docs-src",
+    "docs:build": "vuepress build docs-src"
+  },
+  "devDependencies": {
+    "vuepress": "^2.0.0-rc.18",
+    "@vuepress/bundler-vite": "^2.0.0-rc.18",
+    "@vuepress/theme-default": "^2.0.0-rc.18",
+    "sass-embedded": "^1.83.0",
+    "tailwindcss": "^3.4.0",
+    "autoprefixer": "^10.4.16"
+  },
+  "keywords": [
+    "laravel",
+    "multi-lang",
+    "translation",
+    "localization",
+    "i18n",
+    "ckb",
+    "arabic"
+  ],
+  "author": "TheJano",
+  "license": "MIT"
+}

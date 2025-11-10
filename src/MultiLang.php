@@ -153,4 +153,21 @@ class MultiLang
 
         return $model->translateOrOriginal($field, $locale);
     }
+
+    /**
+     * Get pluralized translation for a model field.
+     */
+    public function getModelTranslationPlural(
+        Model $model,
+        string $field,
+        int|float $count,
+        array $replace = [],
+        ?string $locale = null
+    ): ?string {
+        if (! method_exists($model, 'translatePlural')) {
+            return null;
+        }
+
+        return $model->translatePlural($field, $count, $replace, $locale);
+    }
 }

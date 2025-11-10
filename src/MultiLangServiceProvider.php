@@ -4,6 +4,9 @@ namespace TheJano\MultiLang;
 
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
+use TheJano\MultiLang\Console\Commands\TranslationAuditCommand;
+use TheJano\MultiLang\Console\Commands\TranslationExportCommand;
+use TheJano\MultiLang\Console\Commands\TranslationImportCommand;
 
 class MultiLangServiceProvider extends ServiceProvider
 {
@@ -22,6 +25,14 @@ class MultiLangServiceProvider extends ServiceProvider
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
 
         $this->registerBladeDirectives();
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                TranslationAuditCommand::class,
+                TranslationExportCommand::class,
+                TranslationImportCommand::class,
+            ]);
+        }
 
         $this->publishes([
             __DIR__.'/../config/multi-lang.php' => config_path('multi-lang.php'),

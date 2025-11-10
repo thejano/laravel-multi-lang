@@ -15,8 +15,11 @@ return new class extends Migration
             $table->string('field')->index();
             $table->text('translation')->nullable();
             $table->timestamps();
+            $table->softDeletes();
 
             $table->unique(['translatable_type', 'translatable_id', 'locale', 'field'], 'translatable_unique');
+            $table->index(['translatable_type', 'translatable_id'], 'translations_translatable_index');
+            $table->index(['locale', 'field'], 'translations_locale_field_index');
         });
     }
 
