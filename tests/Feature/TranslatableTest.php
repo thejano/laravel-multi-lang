@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\DB;
 use TheJano\MultiLang\Models\Translation;
 use TheJano\MultiLang\Tests\Feature\TestPost;
 
@@ -53,6 +54,25 @@ test('throws when setting translation for non translatable fields', function () 
 test('throws when accessing translation for non translatable fields', function () {
     expect(fn () => $this->post->translate('description', 'ckb'))
         ->toThrow(\InvalidArgumentException::class, "Field 'description' is not defined in translatableFields.");
+});
+
+test('can load translations for multiple locales at once', function () {
+    $this->post->setTranslation('title', 'ناونیشان', 'ckb');
+    $this->post->setTranslation('title', 'عنوان', 'ar');
+
+    DB::enableQueryLog();
+    DB::flushQueryLog();
+
+    $this->post->loadTranslations(['ckb', 'ar']);
+
+    DB::flushQueryLog();
+
+    $ckbTitle = $this->post->translate('title', 'ckb');
+    $arTitle = $this->post->translate('title', 'ar');
+
+    expect(DB::getQueryLog())->toHaveCount(0);
+    expect($ckbTitle)->toBe('ناونیشان');
+    expect($arTitle)->toBe('عنوان');
 });
 
 test('can get all translations for a locale', function () {

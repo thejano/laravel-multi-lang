@@ -57,6 +57,23 @@ test('prevents N+1 queries when using withTranslations scope', function () {
     expect($queryCount)->toBeLessThanOrEqual(5);
 });
 
+test('prevents N+1 queries when using withTranslations scope for multiple locales', function () {
+    DB::enableQueryLog();
+    DB::flushQueryLog();
+
+    $posts = TestPost::withTranslations(['ckb', 'ar'])->get();
+
+    foreach ($posts as $post) {
+        expect($post->translate('title', 'ckb'))->not->toBeNull();
+        expect($post->translate('title', 'ar'))->not->toBeNull();
+    }
+
+    $queries = DB::getQueryLog();
+    $queryCount = count($queries);
+
+    expect($queryCount)->toBeLessThanOrEqual(5);
+});
+
 test('prevents N+1 queries when using withAllTranslations scope', function () {
     DB::enableQueryLog();
     DB::flushQueryLog();

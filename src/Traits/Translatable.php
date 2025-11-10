@@ -13,6 +13,10 @@ trait Translatable
 
     protected $translationsLoaded = false;
 
+    protected array $loadedTranslationLocales = [];
+
+    protected bool $loadedAllTranslationLocales = false;
+
     protected static function bootTranslatable(): void
     {
         static::deleting(function ($model) {
@@ -25,12 +29,26 @@ trait Translatable
         return $this->morphMany(Translation::class, 'translatable');
     }
 
-    public function scopeWithTranslations($query, ?string $locale = null)
+    public function scopeWithTranslations($query, string|array|null $locales = null)
     {
-        $locale = $locale ?? App::getLocale();
+        if ($locales === null) {
+            return $query->with('translations');
+        }
 
-        return $query->with(['translations' => function ($query) use ($locale) {
-            $query->where('locale', $locale);
+        if (! is_array($locales)) {
+            $locales = [$locales];
+        }
+
+        $locales = array_values(array_unique(array_filter($locales, static function ($locale) {
+            return $locale !== null && $locale !== '';
+        })));
+
+        if (empty($locales)) {
+            $locales = [App::getLocale()];
+        }
+
+        return $query->with(['translations' => function ($query) use ($locales) {
+            $query->whereIn('locale', $locales);
         }]);
     }
 
@@ -39,37 +57,91 @@ trait Translatable
         return $query->with('translations');
     }
 
-    public function loadTranslations(?string $locale = null): void
+    public function loadTranslations(string|array|null $locales = null): void
     {
-        if ($this->translationsLoaded && $this->cachedTranslations !== null) {
+        $normalizedLocales = $this->normalizeLocalesInput($locales);
+
+        if ($this->cachedTranslations !== null) {
+            if ($normalizedLocales === null && $this->loadedAllTranslationLocales) {
+                return;
+            }
+
+            if ($normalizedLocales !== null) {
+                $missingLocales = array_diff($normalizedLocales, $this->loadedTranslationLocales);
+
+                if (empty($missingLocales)) {
+                    return;
+                }
+
+                $normalizedLocales = array_values($missingLocales);
+            }
+        }
+
+        if ($normalizedLocales === null) {
+            if (! $this->relationLoaded('translations') || ! $this->loadedAllTranslationLocales) {
+                $this->load('translations');
+            }
+
+            $this->cacheTranslationsFromCollection($this->getRelation('translations'));
+            $this->loadedAllTranslationLocales = true;
+            $this->loadedTranslationLocales = array_keys($this->cachedTranslations ?? []);
+
             return;
         }
 
-        if (! $this->relationLoaded('translations')) {
-            $this->load('translations');
+        $translationsCollection = collect();
+        $remainingLocales = $normalizedLocales;
+
+        if ($this->relationLoaded('translations')) {
+            $relationTranslations = $this->getRelation('translations')->whereIn('locale', $normalizedLocales);
+
+            if ($relationTranslations->isNotEmpty()) {
+                $translationsCollection = $translationsCollection->merge($relationTranslations);
+                $foundLocales = $relationTranslations->pluck('locale')->unique()->all();
+                $remainingLocales = array_values(array_diff($remainingLocales, $foundLocales));
+            }
         }
 
-        $translations = $this->getRelation('translations');
-        $translatableFields = $this->getTranslatableFields();
+        if (! empty($remainingLocales)) {
+            $fetchedTranslations = $this->translations()
+                ->whereIn('locale', $remainingLocales)
+                ->get();
 
-        if ($translations->isEmpty()) {
-            $this->cachedTranslations = [];
-            $this->translationsLoaded = true;
+            if ($fetchedTranslations->isNotEmpty()) {
+                if ($this->relationLoaded('translations')) {
+                    $this->setRelation(
+                        'translations',
+                        $this->getRelation('translations')->merge($fetchedTranslations)
+                    );
+                } else {
+                    $this->setRelation('translations', $fetchedTranslations);
+                }
+
+                $translationsCollection = $translationsCollection->merge($fetchedTranslations);
+
+                $remainingLocales = array_values(array_diff(
+                    $remainingLocales,
+                    $fetchedTranslations->pluck('locale')->unique()->all()
+                ));
+            }
+        }
+
+        if ($translationsCollection->isEmpty() && empty($remainingLocales)) {
+            $this->initializeEmptyLocales($normalizedLocales);
 
             return;
         }
 
-        $this->cachedTranslations = $translations
-            ->when(! empty($translatableFields), function ($collection) use ($translatableFields) {
-                return $collection->filter(function ($translation) use ($translatableFields) {
-                    return in_array($translation->field, $translatableFields, true);
-                });
-            })
-            ->groupBy('locale')
-            ->map(function ($translations) {
-                return $translations->pluck('translation', 'field')->toArray();
-            })
-            ->toArray();
+        $this->cacheTranslationsFromCollection($translationsCollection);
+
+        if (! empty($remainingLocales)) {
+            $this->initializeEmptyLocales($remainingLocales);
+        }
+
+        $this->loadedTranslationLocales = array_values(array_unique(array_merge(
+            $this->loadedTranslationLocales,
+            $normalizedLocales
+        )));
 
         $this->translationsLoaded = true;
     }
@@ -143,6 +215,8 @@ trait Translatable
         // Invalidate cache and relation
         $this->cachedTranslations = null;
         $this->translationsLoaded = false;
+        $this->loadedTranslationLocales = [];
+        $this->loadedAllTranslationLocales = false;
 
         // If translations relation is loaded, update it or unset it
         if ($this->relationLoaded('translations')) {
@@ -204,21 +278,39 @@ trait Translatable
 
         $locale = $locale ?? App::getLocale();
 
-        return $this->translations()
+        $deleted = $this->translations()
             ->where('locale', $locale)
             ->where('field', $field)
             ->delete();
+
+        if ($deleted) {
+            $this->cachedTranslations = null;
+            $this->translationsLoaded = false;
+            $this->loadedTranslationLocales = [];
+            $this->loadedAllTranslationLocales = false;
+        }
+
+        return $deleted;
     }
 
     public function deleteTranslations(?string $locale = null): bool
     {
         if ($locale !== null) {
-            return $this->translations()
+            $deleted = $this->translations()
                 ->where('locale', $locale)
                 ->delete();
+        } else {
+            $deleted = $this->translations()->delete();
         }
 
-        return $this->translations()->delete();
+        if ($deleted) {
+            $this->cachedTranslations = null;
+            $this->translationsLoaded = false;
+            $this->loadedTranslationLocales = [];
+            $this->loadedAllTranslationLocales = false;
+        }
+
+        return (bool) $deleted;
     }
 
     public function hasTranslation(string $field, ?string $locale = null): bool
@@ -243,6 +335,73 @@ trait Translatable
     public function getTranslatableFields(): array
     {
         return $this->translatableFields ?? [];
+    }
+
+    protected function normalizeLocalesInput(string|array|null $locales): ?array
+    {
+        if ($locales === null) {
+            return null;
+        }
+
+        if (! is_array($locales)) {
+            $locales = [$locales];
+        }
+
+        $normalized = array_values(array_unique(array_filter($locales, static function ($locale) {
+            return $locale !== null && $locale !== '';
+        })));
+
+        if (empty($normalized)) {
+            return [App::getLocale()];
+        }
+
+        return $normalized;
+    }
+
+    protected function cacheTranslationsFromCollection($translations): void
+    {
+        $this->cachedTranslations = $this->cachedTranslations ?? [];
+
+        if ($translations->isEmpty()) {
+            $this->translationsLoaded = true;
+
+            return;
+        }
+
+        $translatableFields = $this->getTranslatableFields();
+
+        $mapped = $translations
+            ->when(! empty($translatableFields), function ($collection) use ($translatableFields) {
+                return $collection->filter(function ($translation) use ($translatableFields) {
+                    return in_array($translation->field, $translatableFields, true);
+                });
+            })
+            ->groupBy('locale')
+            ->map(function ($translations) {
+                return $translations->pluck('translation', 'field')->toArray();
+            })
+            ->toArray();
+
+        if ($this->loadedAllTranslationLocales) {
+            $this->cachedTranslations = $mapped;
+        } else {
+            $this->cachedTranslations = array_replace($this->cachedTranslations, $mapped);
+        }
+
+        $this->translationsLoaded = true;
+    }
+
+    protected function initializeEmptyLocales(array $locales): void
+    {
+        $this->cachedTranslations = $this->cachedTranslations ?? [];
+
+        foreach ($locales as $locale) {
+            if (! array_key_exists($locale, $this->cachedTranslations)) {
+                $this->cachedTranslations[$locale] = [];
+            }
+        }
+
+        $this->translationsLoaded = true;
     }
 
     protected function ensureFieldIsTranslatable(string $field): void
