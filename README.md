@@ -36,6 +36,7 @@ Polymorphic translations for Laravel models with caching, eager-loading helpers,
 - Respects `config('app.locale')`, fallback, and supported locales
 - Facade, helper functions, and Blade directives
 - Cached translations with eager-loading helpers to prevent N+1 queries
+- Eager-load one or many locales in a single query
 - Middleware for automatic locale detection
 - Artisan-publishable migrations & configuration
 - Factories for rapid testing and seeding
@@ -143,6 +144,20 @@ App::setLocale('ckb');
 
 // Returns Kurdish translation if it exists, falls back otherwise
 echo $post->title;
+```
+
+### 5. Eager-load specific locales
+
+```php
+$posts = Post::withTranslations(['ckb', 'ar'])->get();
+
+foreach ($posts as $post) {
+    $post->translate('title', 'ckb'); // uses eager-loaded cache
+    $post->translate('title', 'ar');
+}
+
+$post = Post::first();
+$post->loadTranslations(['ckb', 'ar']); // caches both locales with one call
 ```
 
 The trait will always:

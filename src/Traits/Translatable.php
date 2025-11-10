@@ -4,8 +4,8 @@ namespace TheJano\MultiLang\Traits;
 
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Facades\App;
-use TheJano\MultiLang\Models\Translation;
 use InvalidArgumentException;
+use TheJano\MultiLang\Models\Translation;
 
 trait Translatable
 {
@@ -157,8 +157,10 @@ trait Translatable
             $this->loadTranslations($locale);
         }
 
+        $this->ensureLocaleCached($locale);
+
         // Try to use cached translations if available
-        if ($this->translationsLoaded && $this->cachedTranslations !== null) {
+        if ($this->cachedTranslations !== null) {
             return $this->cachedTranslations[$locale][$field] ?? null;
         }
 
@@ -238,13 +240,10 @@ trait Translatable
     {
         $locale = $locale ?? App::getLocale();
 
-        // Load translations if not already loaded
-        if (! $this->translationsLoaded) {
-            $this->loadTranslations($locale);
-        }
+        $this->ensureLocaleCached($locale);
 
         // Return cached translations for the locale
-        if ($this->cachedTranslations !== null && isset($this->cachedTranslations[$locale])) {
+        if ($this->cachedTranslations !== null && array_key_exists($locale, $this->cachedTranslations)) {
             $translations = $this->cachedTranslations[$locale];
 
             if (! empty($translatableFields = $this->getTranslatableFields())) {
@@ -319,13 +318,10 @@ trait Translatable
 
         $locale = $locale ?? App::getLocale();
 
-        // Load translations if not already loaded
-        if (! $this->translationsLoaded) {
-            $this->loadTranslations($locale);
-        }
+        $this->ensureLocaleCached($locale);
 
         // Check cached translations
-        if ($this->cachedTranslations !== null && isset($this->cachedTranslations[$locale])) {
+        if ($this->cachedTranslations !== null && array_key_exists($locale, $this->cachedTranslations)) {
             return isset($this->cachedTranslations[$locale][$field]);
         }
 
@@ -402,6 +398,23 @@ trait Translatable
         }
 
         $this->translationsLoaded = true;
+    }
+
+    protected function ensureLocaleCached(string $locale): void
+    {
+        if ($locale === '') {
+            return;
+        }
+
+        if (! $this->translationsLoaded || $this->cachedTranslations === null) {
+            $this->loadTranslations($locale);
+
+            return;
+        }
+
+        if (! array_key_exists($locale, $this->cachedTranslations)) {
+            $this->loadTranslations($locale);
+        }
     }
 
     protected function ensureFieldIsTranslatable(string $field): void
