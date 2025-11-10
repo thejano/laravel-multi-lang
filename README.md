@@ -31,14 +31,14 @@ Polymorphic translations for Laravel models with caching, eager-loading helpers,
 
 ## Features
 
-- ✅ Polymorphic translations for any Eloquent model
-- ✅ Trait-based API with attribute accessors
-- ✅ Respects `config('app.locale')`, fallback, and supported locales
-- ✅ Facade, helper functions, and Blade directives
-- ✅ Cached translations with eager-loading helpers to prevent N+1 queries
-- ✅ Middleware for automatic locale detection
-- ✅ Artisan-publishable migrations & configuration
-- ✅ Factories for rapid testing and seeding
+- Polymorphic translations for any Eloquent model
+- Trait-based API with attribute accessors
+- Respects `config('app.locale')`, fallback, and supported locales
+- Facade, helper functions, and Blade directives
+- Cached translations with eager-loading helpers to prevent N+1 queries
+- Middleware for automatic locale detection
+- Artisan-publishable migrations & configuration
+- Factories for rapid testing and seeding
 
 ---
 
@@ -281,6 +281,8 @@ Behind the scenes the trait caches translations per model instance so repeated l
 ---
 
 ## Testing
+
+Any field you translate must be listed in `translatableFields`. Attempting to translate or store a value for a field outside this list throws an `InvalidArgumentException`, helping catch mistakes early.
 
 The package includes factories and a comprehensive Pest suite. Run the tests with:
 
