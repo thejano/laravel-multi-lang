@@ -27,5 +27,3 @@ class TranslationFactory extends Factory
         ];
     }
 }
-
-
