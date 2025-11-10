@@ -1,14 +1,16 @@
 # Laravel Multi-Lang
-
-Polymorphic translations for Laravel models with a batteries-included developer experience—helper functions, eager-loading scopes, caching, CLI tooling, pluralisation helpers, import/export pipelines, and more.
-
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/thejano/laravel-multi-lang.svg?style=flat-square)](https://packagist.org/packages/thejano/laravel-multi-lang)
 [![Tests](https://github.com/thejano/laravel-multi-lang/actions/workflows/tests.yml/badge.svg)](https://github.com/thejano/laravel-multi-lang/actions/workflows/tests.yml)
 [![Total Downloads](https://img.shields.io/packagist/dt/thejano/laravel-multi-lang.svg?style=flat-square)](https://packagist.org/packages/thejano/laravel-multi-lang)
 [![License](https://img.shields.io/github/license/thejano/laravel-multi-lang.svg?style=flat-square)](LICENSE)
 
-**Documentation**  
-Visit [https://multi-lang.thejano.com](https://multi-lang.thejano.com) for the complete guide—including Overview, Core Concepts, Querying Translations, Automation & CLI, Extensibility, Middleware, and Testing.  
+Polymorphic translations for Laravel models with a batteries-included developer experience—helper functions, eager-loading scopes, caching, CLI tooling, pluralisation helpers, import/export pipelines, and more.
+
+
+## Documentation
+Visit docs for the complete guide—including Overview, Core Concepts, Querying Translations, Automation & CLI, Extensibility, Middleware, and Testing.  
+
+https://multi-lang.thejano.com
 
 ---
 
