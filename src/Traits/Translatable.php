@@ -5,6 +5,7 @@ namespace TheJano\MultiLang\Traits;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Facades\App;
 use TheJano\MultiLang\Models\Translation;
+use InvalidArgumentException;
 
 trait Translatable
 {
@@ -49,6 +50,7 @@ trait Translatable
         }
 
         $translations = $this->getRelation('translations');
+        $translatableFields = $this->getTranslatableFields();
 
         if ($translations->isEmpty()) {
             $this->cachedTranslations = [];
@@ -58,6 +60,11 @@ trait Translatable
         }
 
         $this->cachedTranslations = $translations
+            ->when(! empty($translatableFields), function ($collection) use ($translatableFields) {
+                return $collection->filter(function ($translation) use ($translatableFields) {
+                    return in_array($translation->field, $translatableFields, true);
+                });
+            })
             ->groupBy('locale')
             ->map(function ($translations) {
                 return $translations->pluck('translation', 'field')->toArray();
@@ -69,6 +76,8 @@ trait Translatable
 
     public function translate(string $field, ?string $locale = null): ?string
     {
+        $this->ensureFieldIsTranslatable($field);
+
         $locale = $locale ?? App::getLocale();
 
         // If translations are eager loaded but not cached, cache them first
@@ -117,6 +126,8 @@ trait Translatable
 
     public function setTranslation(string $field, string $value, ?string $locale = null): void
     {
+        $this->ensureFieldIsTranslatable($field);
+
         $locale = $locale ?? App::getLocale();
 
         $this->translations()->updateOrCreate(
@@ -144,6 +155,7 @@ trait Translatable
         $locale = $locale ?? App::getLocale();
 
         foreach ($translations as $field => $value) {
+            $this->ensureFieldIsTranslatable($field);
             $this->setTranslation($field, $value, $locale);
         }
     }
@@ -159,7 +171,16 @@ trait Translatable
 
         // Return cached translations for the locale
         if ($this->cachedTranslations !== null && isset($this->cachedTranslations[$locale])) {
-            return $this->cachedTranslations[$locale];
+            $translations = $this->cachedTranslations[$locale];
+
+            if (! empty($translatableFields = $this->getTranslatableFields())) {
+                return array_intersect_key(
+                    $translations,
+                    array_flip($translatableFields)
+                );
+            }
+
+            return $translations;
         }
 
         // Return empty array if no translations found
@@ -179,6 +200,8 @@ trait Translatable
 
     public function deleteTranslation(string $field, ?string $locale = null): bool
     {
+        $this->ensureFieldIsTranslatable($field);
+
         $locale = $locale ?? App::getLocale();
 
         return $this->translations()
@@ -200,6 +223,8 @@ trait Translatable
 
     public function hasTranslation(string $field, ?string $locale = null): bool
     {
+        $this->ensureFieldIsTranslatable($field);
+
         $locale = $locale ?? App::getLocale();
 
         // Load translations if not already loaded
@@ -218,6 +243,19 @@ trait Translatable
     public function getTranslatableFields(): array
     {
         return $this->translatableFields ?? [];
+    }
+
+    protected function ensureFieldIsTranslatable(string $field): void
+    {
+        $translatableFields = $this->getTranslatableFields();
+
+        if (empty($translatableFields)) {
+            return;
+        }
+
+        if (! in_array($field, $translatableFields, true)) {
+            throw new InvalidArgumentException("Field '{$field}' is not defined in translatableFields.");
+        }
     }
 
     public function getAttribute($key)

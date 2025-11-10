@@ -161,8 +161,6 @@ test('hasTranslation uses cached data after eager loading', function () {
     // Second call should use cache
     $hasTitle2 = $post->hasTranslation('title', 'ckb');
     $hasContent = $post->hasTranslation('content', 'ckb');
-    $hasMissing = $post->hasTranslation('missing', 'ckb');
-
     $queries = DB::getQueryLog();
     $queryCount = count($queries);
 
@@ -171,7 +169,9 @@ test('hasTranslation uses cached data after eager loading', function () {
     expect($hasTitle1)->toBeTrue();
     expect($hasTitle2)->toBeTrue();
     expect($hasContent)->toBeTrue();
-    expect($hasMissing)->toBeFalse();
+
+    expect(fn () => $post->hasTranslation('missing', 'ckb'))
+        ->toThrow(\InvalidArgumentException::class, "Field 'missing' is not defined in translatableFields.");
 });
 
 test('setTranslation invalidates cache', function () {

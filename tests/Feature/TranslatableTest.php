@@ -45,6 +45,16 @@ test('returns null when translation does not exist', function () {
     expect($this->post->translate('title', 'ckb'))->toBeNull();
 });
 
+test('throws when setting translation for non translatable fields', function () {
+    expect(fn () => $this->post->setTranslation('description', 'باسکردن', 'ckb'))
+        ->toThrow(\InvalidArgumentException::class, "Field 'description' is not defined in translatableFields.");
+});
+
+test('throws when accessing translation for non translatable fields', function () {
+    expect(fn () => $this->post->translate('description', 'ckb'))
+        ->toThrow(\InvalidArgumentException::class, "Field 'description' is not defined in translatableFields.");
+});
+
 test('can get all translations for a locale', function () {
     $this->post->setTranslation('title', 'ناونیشان', 'ckb');
     $this->post->setTranslation('content', 'ناوەڕۆک', 'ckb');
