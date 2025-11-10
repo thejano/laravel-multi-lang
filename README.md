@@ -7,7 +7,8 @@ Polymorphic translations for Laravel models with a batteries-included developer 
 [![Total Downloads](https://img.shields.io/packagist/dt/thejano/laravel-multi-lang.svg?style=flat-square)](https://packagist.org/packages/thejano/laravel-multi-lang)
 [![License](https://img.shields.io/github/license/thejano/laravel-multi-lang.svg?style=flat-square)](LICENSE)
 
-> 📚 Full documentation lives at [multi-lang.thejano.com](https://multi-lang.thejano.com). Develop locally from `docs-src` (`npm run docs:dev`) and publish with `npm run docs:build` to the `docs` folder.
+**Documentation**  
+Visit [https://multi-lang.thejano.com](https://multi-lang.thejano.com) for the complete guide—including Overview, Core Concepts, Querying Translations, Automation & CLI, Extensibility, Middleware, and Testing.  
 
 ---
 
