@@ -6,6 +6,12 @@ title: Getting Started
 
 This guide walks through the minimal steps required to install, configure, and use Laravel Multi-Lang in a fresh application.
 
+## Requirements
+
+- PHP 8.1 or higher
+- Laravel 10.x, 11.x, or 12.x
+- Database with JSON or text column support (MySQL, PostgreSQL, SQLite, etc.)
+
 ## 1. Install the package
 
 ```bash

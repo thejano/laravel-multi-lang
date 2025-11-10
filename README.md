@@ -14,6 +14,14 @@ https://multi-lang.thejano.com
 
 ---
 
+## Requirements
+
+- PHP 8.1 or higher
+- Laravel 10.x, 11.x, or 12.x
+- Database with JSON or text column support (MySQL, PostgreSQL, SQLite, etc.)
+
+---
+
 ## Why you’ll love it
 
 - **Laravel-native ergonomics** – fluent query scopes, helpers, Blade directives, and facades.
