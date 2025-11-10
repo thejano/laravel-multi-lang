@@ -1,7 +1,3 @@
-<p align="center">
-  <img src="https://avatars.githubusercontent.com/u/108210034?v=4" alt="Laravel Multi-Lang Logo" style="max-width: 450px; border-radius: 10px;" />
-</p>
-
 # Laravel Multi-Lang
 
 Polymorphic translations for Laravel models with a batteries-included developer experience—helper functions, eager-loading scopes, caching, CLI tooling, pluralisation helpers, import/export pipelines, and more.
