@@ -70,6 +70,18 @@ This is ideal for syncing translations from admin panels or import jobs.
 
 Need to check if a translation exists? Use `hasTranslation($field, $locale)`.
 
+### Accessing the stored column directly
+
+If you need to bypass translations entirely—for example, when the app locale is set to `ckb` but you must display the original English field—use Eloquent’s raw accessors:
+
+```php
+$original = $post->getRawOriginal('title');  // Laravel 10+
+// or on Laravel 9 and below:
+$original = $post->getOriginal('title');
+```
+
+This does not mutate or invalidate the translation cache; it simply returns the database column as stored. To keep the translation fallback chain while still getting an original when no translation exists, call `translateOrOriginal` or the helper `trans_model_or_original($post, 'title', 'ckb')`.
+
 ---
 
 ## Soft delete lifecycle

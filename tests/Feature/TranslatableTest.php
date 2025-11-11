@@ -151,6 +151,19 @@ test('translateOrOriginal returns original when translation does not exist', fun
     expect($this->post->translateOrOriginal('title', 'ckb'))->toBe('Original Title');
 });
 
+test('can access original and multiple translations when app locale is ckb', function () {
+    $this->post->setTranslation('title', 'ناونیشان', 'ckb');
+    $this->post->setTranslation('title', 'عنوان', 'ar');
+
+    App::setLocale('ckb');
+
+    expect($this->post->getRawOriginal('title'))->toBe('Original Title');
+    expect($this->post->translate('title', 'ckb'))->toBe('ناونیشان');
+    expect($this->post->translate('title', 'ar'))->toBe('عنوان');
+
+    App::setLocale('en');
+});
+
 test('can check if translation exists', function () {
     $this->post->setTranslation('title', 'ناونیشان', 'ckb');
 

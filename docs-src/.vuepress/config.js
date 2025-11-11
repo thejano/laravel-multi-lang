@@ -1,6 +1,7 @@
 import { defineUserConfig } from 'vuepress';
 import { viteBundler } from '@vuepress/bundler-vite';
 import { defaultTheme } from '@vuepress/theme-default';
+import { searchPlugin } from '@vuepress/plugin-search';
 
 export default defineUserConfig({
   lang: 'en-US',
@@ -69,6 +70,26 @@ export default defineUserConfig({
       ],
     },
   }),
+  plugins: [
+    searchPlugin({
+      locales: {
+        '/': {
+          placeholder: 'Search docs…',
+        },
+      },
+      getExtraFields: (page) => {
+        if (typeof page.contentRendered === 'string' && page.contentRendered.trim() !== '') {
+          return [page.contentRendered];
+        }
+
+        if (typeof page.content === 'string' && page.content.trim() !== '') {
+          return [page.content];
+        }
+
+        return [];
+      },
+    }),
+  ],
   bundler: viteBundler(),
 });
 
