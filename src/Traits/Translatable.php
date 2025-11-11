@@ -32,10 +32,16 @@ trait Translatable
 
     protected static ?TranslationCacheStore $translationCacheStore = null;
 
+    protected static array $translationLazyLoadQueue = [];
+
     protected static function bootTranslatable(): void
     {
         static::deleting(function ($model) {
             $model->deleteTranslations();
+        });
+
+        static::retrieved(function ($model) {
+            $model->queueTranslationForLazyLoading();
         });
     }
 
@@ -57,6 +63,36 @@ trait Translatable
         }
 
         return false;
+    }
+
+    protected function queueTranslationForLazyLoading(): void
+    {
+        $key = $this->getKey();
+
+        if ($key === null) {
+            return;
+        }
+
+        static::$translationLazyLoadQueue[static::class][$key] = $this;
+    }
+
+    protected function clearFromTranslationLazyLoadQueue(): void
+    {
+        $key = $this->getKey();
+
+        if ($key === null) {
+            return;
+        }
+
+        $class = static::class;
+
+        if (isset(static::$translationLazyLoadQueue[$class][$key])) {
+            unset(static::$translationLazyLoadQueue[$class][$key]);
+
+            if (empty(static::$translationLazyLoadQueue[$class])) {
+                unset(static::$translationLazyLoadQueue[$class]);
+            }
+        }
     }
 
     public function getAttribute($key)

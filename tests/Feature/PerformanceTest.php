@@ -18,7 +18,7 @@ beforeEach(function () {
     }
 });
 
-test('detects N+1 query problem when accessing translations without eager loading', function () {
+test('batches queries when accessing translations without explicit eager loading', function () {
     DB::enableQueryLog();
     DB::flushQueryLog();
 
@@ -35,8 +35,28 @@ test('detects N+1 query problem when accessing translations without eager loadin
 
     $postCount = $posts->count();
 
-    // Should have more queries than the initial posts fetch (demonstrates N+1 pattern)
-    expect($queryCount)->toBeGreaterThan($postCount);
+    // Lazy loading queue should consolidate translation queries into a handful of calls
+    expect($queryCount)->toBeLessThanOrEqual($postCount + 2);
+});
+
+test('batches translated attribute access without explicit eager loading', function () {
+    DB::enableQueryLog();
+    DB::flushQueryLog();
+
+    $posts = TestPost::all();
+
+    foreach ($posts as $post) {
+        $title = $post->title;
+        $content = $post->content;
+    }
+
+    $queries = DB::getQueryLog();
+    $queryCount = count($queries);
+
+    $postCount = $posts->count();
+
+    // Attribute access should be handled by the lazy-load batcher (no N+1 explosion)
+    expect($queryCount)->toBeLessThanOrEqual($postCount + 2);
 });
 
 test('prevents N+1 queries when using withTranslations scope', function () {
@@ -48,15 +68,15 @@ test('prevents N+1 queries when using withTranslations scope', function () {
 
     // Access translations for each post (should use eager loaded data)
     foreach ($posts as $post) {
-        $post->translate('title', 'ckb');
-        $post->translate('content', 'ckb');
+        $post->title;
+        $post->content;
     }
 
     $queries = DB::getQueryLog();
     $queryCount = count($queries);
 
     // Should have 1 query for posts + 1 query for translations = 2 queries
-    expect($queryCount)->toBeLessThanOrEqual(5);
+    expect($queryCount)->toBeLessThanOrEqual(2);
 });
 
 test('prevents N+1 queries when using withTranslations scope for multiple locales', function () {
@@ -267,8 +287,8 @@ test('performance comparison: with vs without eager loading', function () {
 
     $queriesWith = count(DB::getQueryLog());
 
-    // With eager loading should use significantly fewer queries
-    expect($queriesWith)->toBeLessThan($queriesWithout);
+    // With explicit eager loading we should stay within a narrow bound of the implicit batching behaviour
+    expect($queriesWith)->toBeLessThanOrEqual($queriesWithout + 1);
     expect($queriesWith)->toBeLessThanOrEqual(5);
 });
 

@@ -29,6 +29,8 @@ $post->loadTranslations(['ckb', 'ar']);
 
 Each method hydrates the `translations` relationship and primes the in-memory cache so future calls to `translate()` or attribute access do not hit the database.
 
+> **Heads up:** When you eager load translations and later access a primary locale (your `config('app.locale')`, fallback, or current `App::getLocale()`), the package now reuses that eager-loaded payload. If the locale is missing in the collection, the original model attribute is returned without issuing another query. This keeps base-language reads as cheap as possible while still fetching real translations on demand.
+
 ---
 
 ## Per-model caching
